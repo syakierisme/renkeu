@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rencana Keuangan Personal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            800: '#0f172a',
+                            900: '#020617',
+                        },
+                        emerald: {
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .print-break-inside-avoid {
+                break-inside: avoid;
+            }
+            .shadow-xl, .shadow-lg, .shadow-md, .shadow {
+                box-shadow: none !important;
+            }
+            .border {
+                border-color: #cbd5e1 !important;
+            }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-emerald-500 selection:text-white min-h-screen flex flex-col">
+
+    <!-- Main Navigation & Header -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-3.5">
+                    <div class="p-2.5 bg-emerald-600 text-white rounded-xl shadow-md shadow-emerald-200">
+                        <i class="fa-solid fa-wallet text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-xl text-slate-900 leading-tight">
+                            Rencana Keuangan Personal <span id="nav-user-title" class="text-emerald-600"></span>
+                        </h1>
+                        <p class="text-xs text-slate-500 font-medium">Tugas 2 - Profil Pendapatan Bulanan: <span class="font-bold text-emerald-600" id="nav-income-display">Rp 2.500.000</span></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 no-print">
+                    <button onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all border border-slate-300 shadow-sm active:scale-95">
+                        <i class="fa-solid fa-print"></i>
+                        <span class="hidden sm:inline">Cetak / Export PDF</span>
+                    </button>
+                    <a href="#kalkulator" class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-md shadow-emerald-200 active:scale-95">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span class="hidden sm:inline">Simulasi Interaktif</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- User Input & Income Setup Bar (No Print) -->
+        <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-2xl shadow-md no-print">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6">
+                <div class="space-y-1 md:w-1/3">
+                    <h2 class="text-lg font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-user-gear text-emerald-400"></i>
+                        Pengaturan Profil & Pendapatan
+                    </h2>
+                    <p class="text-xs text-slate-300">Ubah nama dan pendapatan bulanan untuk memperbarui seluruh kalkulasi laporan secara realtime.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:w-2/3">
+                    <!-- User Name Input -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Nama Pengguna</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                <i class="fa-solid fa-user text-xs"></i>
+                            </span>
+                            <input type="text" id="global-user-name" value="Mahasiswa" placeholder="Masukkan Nama Anda..." class="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                    </div>
+                    <!-- Monthly Income Input -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Pendapatan Bulanan (Rp)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold text-xs">Rp</span>
+                            <input type="number" id="global-income-input" value="2500000" step="100000" min="100000" class="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white font-bold text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Welcome Card -->
+        <section class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-user text-emerald-600"></i>
+                    Laporan Keuangan Personal: <span id="welcome-user-name" class="text-emerald-700">Mahasiswa</span>
+                </h2>
+                <p class="text-xs text-slate-600">
+                    Berdasarkan pendapatan bulanan <strong id="welcome-income-text" class="text-slate-900">Rp 2.500.000</strong> dengan terapan formula ideal <strong>50/30/20</strong>.
+                </p>
+            </div>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-emerald-300 text-emerald-700 text-xs font-semibold shadow-sm">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                <span>Status Financial Plan: Optimal</span>
+            </div>
+        </section>
+
+        <!-- Summary Cards (50/30/20) -->
+        <section class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card 1 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                    <div class="absolute top-0 right-0 w-2 h-full bg-blue-600"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pendapatan Bulanan</span>
+                        <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <i class="fa-solid fa-arrow-down-left"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-extrabold text-slate-900" id="card-income">Rp 2.500.000</div>
+                    <p class="text-xs text-slate-500 mt-2 flex items-center gap-1">
+                        <span class="text-blue-600 font-semibold">100% Total Pemasukan</span>
+                    </p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                    <div class="absolute top-0 right-0 w-2 h-full bg-rose-500"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Kebutuhan Pokok (50%)</span>
+                        <div class="p-2 bg-rose-50 text-rose-600 rounded-lg">
+                            <i class="fa-solid fa-basket-shopping"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-extrabold text-slate-900" id="card-needs">Rp 1.250.000</div>
+                    <p class="text-xs text-slate-500 mt-2">Sewa, Makan, Transport, Utilitas</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                    <div class="absolute top-0 right-0 w-2 h-full bg-amber-500"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Keinginan (30%)</span>
+                        <div class="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                            <i class="fa-solid fa-mug-hot"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-extrabold text-slate-900" id="card-wants">Rp 750.000</div>
+                    <p class="text-xs text-slate-500 mt-2">Hiburan, Sosial & Belanja Pribadi</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                    <div class="absolute top-0 right-0 w-2 h-full bg-emerald-500"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Tabungan (20%)</span>
+                        <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                            <i class="fa-solid fa-piggy-bank"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-extrabold text-emerald-600" id="card-savings">Rp 500.000</div>
+                    <p class="text-xs text-slate-500 mt-2">Dana Darurat, Skill & Investasi</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart & Budget Chart Overview -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Doughnut Chart Column -->
+            <div class="lg:col-span-1 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm print-break-inside-avoid flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-4">
+                        <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                            <i class="fa-solid fa-chart-pie text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">Proporsi Anggaran</h3>
+                            <p class="text-xs text-slate-500">Visualisasi Metode 50 / 30 / 20</p>
+                        </div>
+                    </div>
+
+                    <!-- Chart Canvas Container -->
+                    <div class="relative w-full aspect-square max-w-[220px] mx-auto my-2">
+                        <canvas id="budgetChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart Legend List -->
+                <div class="space-y-2 text-xs pt-4 border-t border-slate-100">
+                    <div class="flex justify-between items-center p-2 rounded-lg bg-slate-50 border border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                            <span class="font-medium text-slate-700">Kebutuhan (Needs)</span>
+                        </div>
+                        <span class="font-bold text-slate-900" id="legend-needs">50% (Rp 1.250.000)</span>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg bg-slate-50 border border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                            <span class="font-medium text-slate-700">Keinginan (Wants)</span>
+                        </div>
+                        <span class="font-bold text-slate-900" id="legend-wants">30% (Rp 750.000)</span>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg bg-slate-50 border border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                            <span class="font-medium text-slate-700">Tabungan (Savings)</span>
+                        </div>
+                        <span class="font-bold text-slate-900" id="legend-savings">20% (Rp 500.000)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target & Matriks Tujuan Keuangan -->
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm print-break-inside-avoid space-y-6">
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                    <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                        <i class="fa-solid fa-bullseye text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Matriks Tujuan Keuangan Realtime</h3>
+                        <p class="text-xs text-slate-500">Durasi pencapaian terhitung otomatis dari alokasi tabungan bulanan saat ini</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Short Term Goals -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="px-2.5 py-1 text-xs font-bold rounded-md bg-blue-100 text-blue-800 uppercase tracking-wide">Jangka Pendek / Taktis (&lt; 1 Tahun)</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Goal item 1 -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div class="flex justify-between items-start mb-1.5">
+                                    <h4 class="font-semibold text-slate-900 text-sm">1. Dana Darurat (3x Gaji)</h4>
+                                    <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100" id="goal-time-emergency">15 Bulan</span>
+                                </div>
+                                <div class="text-lg font-bold text-slate-900 mb-1" id="goal-target-emergency">Rp 7.500.000</div>
+                                <div class="text-xs text-slate-600 space-y-1">
+                                    <p>• <strong>Alokasi Bulanan:</strong> <span id="goal-monthly-emergency">Rp 350.000</span></p>
+                                    <p>• <strong>Instrumen:</strong> Reksadana Pasar Uang / Tabungan Bunga Tinggi</p>
+                                    <p>• <strong>Fungsi:</strong> Proteksi likuiditas jika terjadi kondisi darurat medis/pekerjaan.</p>
+                                </div>
+                            </div>
+                            <!-- Goal item 2 -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div class="flex justify-between items-start mb-1.5">
+                                    <h4 class="font-semibold text-slate-900 text-sm">2. Pelatihan / Sertifikasi Skill</h4>
+                                    <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100" id="goal-time-skill">10 Bulan</span>
+                                </div>
+                                <div class="text-lg font-bold text-slate-900 mb-1">Rp 1.500.000</div>
+                                <div class="text-xs text-slate-600 space-y-1">
+                                    <p>• <strong>Alokasi Bulanan:</strong> <span id="goal-monthly-skill">Rp 150.000</span></p>
+                                    <p>• <strong>Instrumen:</strong> Dompet Khusus / Tabungan Pendidikan</p>
+                                    <p>• <strong>Fungsi:</strong> Pengembangan keahlian profesional untuk dongkrak pendapatan.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Long Term Goals -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="px-2.5 py-1 text-xs font-bold rounded-md bg-purple-100 text-purple-800 uppercase tracking-wide">Jangka Panjang / Strategis (3 - 5+ Tahun)</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Goal item 3 -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div class="flex justify-between items-start mb-1.5">
+                                    <h4 class="font-semibold text-slate-900 text-sm">3. Uang Muka (DP) Rumah Pertama</h4>
+                                    <span class="text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded border border-purple-100" id="goal-time-house">5 Tahun</span>
+                                </div>
+                                <div class="text-lg font-bold text-slate-900 mb-1">Rp 30.000.000</div>
+                                <div class="text-xs text-slate-600 space-y-1">
+                                    <p>• <strong>Target Alokasi:</strong> <span id="goal-monthly-house">Rp 500.000</span> / bulan (paska goal taktis)</p>
+                                    <p>• <strong>Instrumen:</strong> Reksadana Pendapatan Tetap / SBN</p>
+                                    <p>• <strong>Fungsi:</strong> Memiliki aset tempat tinggal permanen.</p>
+                                </div>
+                            </div>
+                            <!-- Goal item 4 -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div class="flex justify-between items-start mb-1.5">
+                                    <h4 class="font-semibold text-slate-900 text-sm">4. Modal Usaha & Portofolio Masa Depan</h4>
+                                    <span class="text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded border border-purple-100" id="goal-time-business">3.3 Tahun</span>
+                                </div>
+                                <div class="text-lg font-bold text-slate-900 mb-1">Rp 20.000.000</div>
+                                <div class="text-xs text-slate-600 space-y-1">
+                                    <p>• <strong>Target Alokasi:</strong> Akumulasi pendapatan sekunder / bonus</p>
+                                    <p>• <strong>Instrumen:</strong> Reksadana Saham / ETF / Emas Batangan</p>
+                                    <p>• <strong>Fungsi:</strong> Kemandirian finansial & pembentukan <em>passive income</em>.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Narrative -->
+                    <div class="p-4 bg-indigo-50/70 border border-indigo-100 rounded-xl text-xs text-indigo-950 leading-relaxed space-y-1">
+                        <strong class="font-bold flex items-center gap-1.5 text-indigo-900">
+                            <i class="fa-solid fa-code-fork text-indigo-600"></i>
+                            Hubungan Sinergis Langkah Taktis dan Strategis:
+                        </strong>
+                        <p>
+                            Langkah taktis (Jangka Pendek) menjadi fondasi aman. Pengumpulan <strong>Dana Darurat</strong> mencegah rusaknya investasi saat ada krisis, sedangkan <strong>Sertifikasi Skill</strong> membuka potensi peningkatan pendapatan bulanan. Keberhasilan aksi taktis bulanan secara langsung menyediakan kapasitas dana yang lebih besar untuk mewujudkan target strategis jangka panjang (DP Rumah & Modal Usaha).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Anggaran, Kebutuhan Dana & Sumber Dana -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm print-break-inside-avoid space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                        <i class="fa-solid fa-list-check text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Detail Anggaran & Kebutuhan Dana Bulanan</h3>
+                        <p class="text-xs text-slate-500">Breakdown Operasional Rinci & Analisis Sumber Pemasukan</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table of Detailed Budget Breakdown -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs uppercase bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="py-3 px-4">Kategori Anggaran</th>
+                            <th class="py-3 px-4">Pos Pengeluaran Rinci</th>
+                            <th class="py-3 px-4 text-center">Persentase</th>
+                            <th class="py-3 px-4 text-right">Jumlah Nominal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 border-b border-slate-200">
+                        <!-- Needs Row -->
+                        <tr class="hover:bg-slate-50">
+                            <td class="py-3.5 px-4 font-semibold text-slate-900 flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                Kebutuhan Pokok
+                            </td>
+                            <td class="py-3.5 px-4 text-xs text-slate-600">
+                                Sewa Tempat / Kost, Makan & Dapur Harian, Transportasi, Utilitas & Internet
+                            </td>
+                            <td class="py-3.5 px-4 text-center font-semibold text-rose-600" id="tbl-needs-percent">50%</td>
+                            <td class="py-3.5 px-4 text-right font-bold text-slate-900" id="tbl-needs">Rp 1.250.000</td>
+                        </tr>
+                        <!-- Wants Row -->
+                        <tr class="hover:bg-slate-50">
+                            <td class="py-3.5 px-4 font-semibold text-slate-900 flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                Keinginan / Gaya Hidup
+                            </td>
+                            <td class="py-3.5 px-4 text-xs text-slate-600">
+                                Hiburan & Sosialisasi, Belanja Pribadi, Langganan Digital & Hobi
+                            </td>
+                            <td class="py-3.5 px-4 text-center font-semibold text-amber-600" id="tbl-wants-percent">30%</td>
+                            <td class="py-3.5 px-4 text-right font-bold text-slate-900" id="tbl-wants">Rp 750.000</td>
+                        </tr>
+                        <!-- Savings Row -->
+                        <tr class="hover:bg-slate-50">
+                            <td class="py-3.5 px-4 font-semibold text-slate-900 flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                Tabungan & Investasi
+                            </td>
+                            <td class="py-3.5 px-4 text-xs text-slate-600">
+                                Tabungan Dana Darurat, Tabungan Pelatihan Skill & Investasi Masa Depan
+                            </td>
+                            <td class="py-3.5 px-4 text-center font-semibold text-emerald-600" id="tbl-savings-percent">20%</td>
+                            <td class="py-3.5 px-4 text-right font-bold text-slate-900" id="tbl-savings">Rp 500.000</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="bg-slate-50 font-bold text-slate-900">
+                        <tr>
+                            <td class="py-3 px-4" colspan="2">TOTAL KEBUTUHAN ANGGARAN BULANAN</td>
+                            <td class="py-3 px-4 text-center text-emerald-600">100%</td>
+                            <td class="py-3 px-4 text-right text-emerald-700 text-base" id="tbl-total">Rp 2.500.000</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Sources of Funds Analysis -->
+            <div class="pt-4 border-t border-slate-100">
+                <h4 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-coins text-amber-500"></i>
+                    Analisis Sumber Dana (Sources of Funds)
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                        <div class="font-bold text-slate-900 text-xs mb-1 flex justify-between items-center">
+                            <span>1. Sumber Utama (Pasti)</span>
+                            <span class="text-emerald-600" id="source-primary">Rp 2.500.000 / bln</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            <strong>Gaji Bulanan Tetap:</strong> Digunakan secara disiplin membiayai kebutuhan rutin, batas gaya hidup, dan kuota tabungan wajib secara terstruktur.
+                        </p>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                        <div class="font-bold text-slate-900 text-xs mb-1 flex justify-between items-center">
+                            <span>2. Sumber Sekunder (Tambahan)</span>
+                            <span class="text-blue-600">Variabel / Fleksibel</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            <strong>Freelance / Side Hustle / Bonus / THR:</strong> Dialokasikan 100% mempercepat akselerasi akumulasi DP Rumah dan Modal Usaha tanpa mengganggu dana operasional harian.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Simulator Calculator -->
+        <section id="kalkulator" class="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-xl no-print scroll-mt-24">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6 mb-6">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold mb-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Kalkulator Interaktif
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Simulasi Perencanaan Keuangan</h3>
+                    <p class="text-xs text-slate-400">Geser persentase alokasi di bawah untuk melihat dampak langsung pada target waktu Anda.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Inputs & Sliders -->
+                <div class="lg:col-span-5 space-y-5">
+                    <!-- Range Sliders -->
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs font-medium mb-1">
+                                <span class="text-rose-400">Kebutuhan (Needs)</span>
+                                <span id="sim-needs-percent" class="font-bold text-white">50%</span>
+                            </div>
+                            <input type="range" id="sim-slider-needs" min="30" max="70" value="50" class="w-full accent-rose-500 h-1.5 bg-slate-700 rounded-lg cursor-pointer">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-medium mb-1">
+                                <span class="text-amber-400">Keinginan (Wants)</span>
+                                <span id="sim-wants-percent" class="font-bold text-white">30%</span>
+                            </div>
+                            <input type="range" id="sim-slider-wants" min="10" max="50" value="30" class="w-full accent-amber-500 h-1.5 bg-slate-700 rounded-lg cursor-pointer">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-medium mb-1">
+                                <span class="text-emerald-400">Tabungan (Savings)</span>
+                                <span id="sim-savings-percent" class="font-bold text-white">20%</span>
+                            </div>
+                            <input type="range" id="sim-slider-savings" min="5" max="50" value="20" class="w-full accent-emerald-500 h-1.5 bg-slate-700 rounded-lg cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="resetSimulation()" class="w-full py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-lg border border-slate-700 transition-colors">
+                            Reset ke Proporsi Standar (50-30-20)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simulation Results Output -->
+                <div class="lg:col-span-7 bg-slate-800/80 border border-slate-700/80 rounded-xl p-5 space-y-4 flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Hasil Alokasi Simulasi Bulanan</h4>
+                        <div class="grid grid-cols-3 gap-3 mb-4 text-center">
+                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700">
+                                <div class="text-[10px] text-slate-400 uppercase">Needs</div>
+                                <div class="text-sm font-bold text-rose-400 mt-1" id="sim-res-needs">Rp 1.250.000</div>
+                            </div>
+                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700">
+                                <div class="text-[10px] text-slate-400 uppercase">Wants</div>
+                                <div class="text-sm font-bold text-amber-400 mt-1" id="sim-res-wants">Rp 750.000</div>
+                            </div>
+                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700">
+                                <div class="text-[10px] text-slate-400 uppercase">Savings</div>
+                                <div class="text-sm font-bold text-emerald-400 mt-1" id="sim-res-savings">Rp 500.000</div>
+                            </div>
+                        </div>
+
+                        <h4 class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">Estimasi Waktu Pencapaian Target:</h4>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between items-center p-2.5 rounded bg-slate-900/40 border border-slate-700">
+                                <span class="text-slate-300">Dana Darurat (<span id="sim-target-emergency-text">Rp 7.500.000</span>):</span>
+                                <span class="font-bold text-emerald-400" id="sim-time-emergency">15.0 Bulan</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2.5 rounded bg-slate-900/40 border border-slate-700">
+                                <span class="text-slate-300">Sertifikasi Skill (Rp 1.500.000):</span>
+                                <span class="font-bold text-emerald-400" id="sim-time-skill">3.0 Bulan</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2.5 rounded bg-slate-900/40 border border-slate-700">
+                                <span class="text-slate-300">DP Rumah Pertama (Rp 30.000.000):</span>
+                                <span class="font-bold text-emerald-400" id="sim-time-house">60.0 Bulan (5 Thn)</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2.5 rounded bg-slate-900/40 border border-slate-700">
+                                <span class="text-slate-300">Modal Usaha / Investasi (Rp 20.000.000):</span>
+                                <span class="font-bold text-emerald-400" id="sim-time-business">40.0 Bulan (3.3 Thn)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-emerald-950/40 border border-emerald-800/50 rounded-lg text-emerald-300 text-xs flex items-start gap-2 mt-2">
+                        <i class="fa-solid fa-circle-info shrink-0 mt-0.5"></i>
+                        <span>Setiap penambahan porsi alokasi tabungan bulanan secara langsung mempercepat waktu tercapainya seluruh target finansial Anda.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 space-y-1.5">
+            <p class="font-semibold text-slate-700">Laporan Rencana Keuangan Personal (Tugas 2)</p>
+            <p class="text-slate-400">© 2026 Interactive Financial Planning Tool</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Engine -->
+    <script>
+        // Currency Formatter
+        function formatRupiah(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // Global Chart Instance
+        let budgetChart;
+
+        // Global State Variables
+        let userName = "Mahasiswa";
+        let currentIncome = 2500000;
+
+        // Sliders ratios
+        let sliderNeeds = document.getElementById('sim-slider-needs');
+        let sliderWants = document.getElementById('sim-slider-wants');
+        let sliderSavings = document.getElementById('sim-slider-savings');
+
+        // Initialize Chart.js
+        function initChart() {
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            budgetChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Kebutuhan Pokok', 'Keinginan / Gaya Hidup', 'Tabungan & Investasi'],
+                    datasets: [{
+                        data: [
+                            currentIncome * 0.5,
+                            currentIncome * 0.3,
+                            currentIncome * 0.2
+                        ],
+                        backgroundColor: [
+                            '#f43f5e', // rose-500
+                            '#f59e0b', // amber-500
+                            '#10b981'  // emerald-500
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw || 0;
+                                    return ' ' + context.label + ': ' + formatRupiah(value);
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // Main Synchronizer Function
+        function syncEverything() {
+            // Fetch values from inputs
+            userName = document.getElementById('global-user-name').value.trim() || "Pengguna";
+            currentIncome = parseFloat(document.getElementById('global-income-input').value) || 0;
+
+            let nRatio = parseInt(sliderNeeds.value) / 100;
+            let wRatio = parseInt(sliderWants.value) / 100;
+            let sRatio = parseInt(sliderSavings.value) / 100;
+
+            // Calculate values
+            const needsVal = currentIncome * nRatio;
+            const wantsVal = currentIncome * wRatio;
+            const savingsVal = currentIncome * sRatio;
+
+            // 1. Update Name Displays
+            document.getElementById('nav-user-title').innerText = "- " + userName;
+            document.getElementById('welcome-user-name').innerText = userName;
+
+            // 2. Update Header Income Displays
+            document.getElementById('nav-income-display').innerText = formatRupiah(currentIncome);
+            document.getElementById('welcome-income-text').innerText = formatRupiah(currentIncome);
+
+            // 3. Summary Cards
+            document.getElementById('card-income').innerText = formatRupiah(currentIncome);
+            document.getElementById('card-needs').innerText = formatRupiah(needsVal);
+            document.getElementById('card-wants').innerText = formatRupiah(wantsVal);
+            document.getElementById('card-savings').innerText = formatRupiah(savingsVal);
+
+            // 4. Chart Legends & Chart Data
+            document.getElementById('legend-needs').innerText = `${Math.round(nRatio*100)}% (${formatRupiah(needsVal)})`;
+            document.getElementById('legend-wants').innerText = `${Math.round(wRatio*100)}% (${formatRupiah(wantsVal)})`;
+            document.getElementById('legend-savings').innerText = `${Math.round(sRatio*100)}% (${formatRupiah(savingsVal)})`;
+
+            if(budgetChart) {
+                budgetChart.data.datasets[0].data = [needsVal, wantsVal, savingsVal];
+                budgetChart.update();
+            }
+
+            // 5. Goals Matrix Calculations (Emergency fund is 3x income)
+            const emergencyTarget = currentIncome * 3;
+            document.getElementById('goal-target-emergency').innerText = formatRupiah(emergencyTarget);
+            document.getElementById('sim-target-emergency-text').innerText = formatRupiah(emergencyTarget);
+
+            // Allocations breakdown inside goals
+            const monthlyEmergency = savingsVal * 0.7; // 70% of savings towards emergency fund initially
+            const monthlySkill = savingsVal * 0.3;     // 30% towards skill
+            document.getElementById('goal-monthly-emergency').innerText = formatRupiah(monthlyEmergency);
+            document.getElementById('goal-monthly-skill').innerText = formatRupiah(monthlySkill);
+            document.getElementById('goal-monthly-house').innerText = formatRupiah(savingsVal);
+
+            // Time Calculations
+            const timeEmergency = monthlyEmergency > 0 ? (emergencyTarget / monthlyEmergency).toFixed(1) : '∞';
+            const timeSkill = monthlySkill > 0 ? (1500000 / monthlySkill).toFixed(1) : '∞';
+            const timeHouse = savingsVal > 0 ? (30000000 / savingsVal).toFixed(1) : '∞';
+            const timeBusiness = savingsVal > 0 ? (20000000 / savingsVal).toFixed(1) : '∞';
+
+            document.getElementById('goal-time-emergency').innerText = timeEmergency !== '∞' ? `${timeEmergency} Bulan` : '∞';
+            document.getElementById('goal-time-skill').innerText = timeSkill !== '∞' ? `${timeSkill} Bulan` : '∞';
+            document.getElementById('goal-time-house').innerText = timeHouse !== '∞' ? `${(timeHouse/12).toFixed(1)} Tahun` : '∞';
+            document.getElementById('goal-time-business').innerText = timeBusiness !== '∞' ? `${(timeBusiness/12).toFixed(1)} Tahun` : '∞';
+
+            // 6. Breakdown Table Update
+            document.getElementById('tbl-needs-percent').innerText = Math.round(nRatio*100) + '%';
+            document.getElementById('tbl-wants-percent').innerText = Math.round(wRatio*100) + '%';
+            document.getElementById('tbl-savings-percent').innerText = Math.round(sRatio*100) + '%';
+
+            document.getElementById('tbl-needs').innerText = formatRupiah(needsVal);
+            document.getElementById('tbl-wants').innerText = formatRupiah(wantsVal);
+            document.getElementById('tbl-savings').innerText = formatRupiah(savingsVal);
+            document.getElementById('tbl-total').innerText = formatRupiah(currentIncome);
+
+            // 7. Sources of Funds Update
+            document.getElementById('source-primary').innerText = formatRupiah(currentIncome) + ' / bln';
+
+            // 8. Simulator Outputs
+            document.getElementById('sim-needs-percent').innerText = Math.round(nRatio*100) + '%';
+            document.getElementById('sim-wants-percent').innerText = Math.round(wRatio*100) + '%';
+            document.getElementById('sim-savings-percent').innerText = Math.round(sRatio*100) + '%';
+
+            document.getElementById('sim-res-needs').innerText = formatRupiah(needsVal);
+            document.getElementById('sim-res-wants').innerText = formatRupiah(wantsVal);
+            document.getElementById('sim-res-savings').innerText = formatRupiah(savingsVal);
+
+            document.getElementById('sim-time-emergency').innerText = timeEmergency !== '∞' ? `${timeEmergency} Bulan` : 'Tidak Tercapai';
+            document.getElementById('sim-time-skill').innerText = timeSkill !== '∞' ? `${timeSkill} Bulan` : 'Tidak Tercapai';
+            document.getElementById('sim-time-house').innerText = timeHouse !== '∞' ? `${timeHouse} Bulan (${(timeHouse/12).toFixed(1)} Thn)` : 'Tidak Tercapai';
+            document.getElementById('sim-time-business').innerText = timeBusiness !== '∞' ? `${timeBusiness} Bulan (${(timeBusiness/12).toFixed(1)} Thn)` : 'Tidak Tercapai';
+        }
+
+        // Event Listeners for Name & Income Inputs
+        document.getElementById('global-user-name').addEventListener('input', syncEverything);
+        document.getElementById('global-income-input').addEventListener('input', syncEverything);
+
+        // Sliders Balancing Listeners
+        sliderNeeds.addEventListener('input', () => {
+            let remain = 100 - parseInt(sliderNeeds.value);
+            let currentWants = parseInt(sliderWants.value);
+            let currentSavings = parseInt(sliderSavings.value);
+            let totalWS = currentWants + currentSavings || 1;
+            
+            sliderWants.value = Math.round((currentWants / totalWS) * remain);
+            sliderSavings.value = remain - sliderWants.value;
+            syncEverything();
+        });
+
+        sliderWants.addEventListener('input', () => {
+            let remain = 100 - parseInt(sliderWants.value);
+            let currentNeeds = parseInt(sliderNeeds.value);
+            let currentSavings = parseInt(sliderSavings.value);
+            let totalNS = currentNeeds + currentSavings || 1;
+
+            sliderNeeds.value = Math.round((currentNeeds / totalNS) * remain);
+            sliderSavings.value = remain - sliderNeeds.value;
+            syncEverything();
+        });
+
+        sliderSavings.addEventListener('input', () => {
+            let remain = 100 - parseInt(sliderSavings.value);
+            let currentNeeds = parseInt(sliderNeeds.value);
+            let currentWants = parseInt(sliderWants.value);
+            let totalNW = currentNeeds + currentWants || 1;
+
+            sliderNeeds.value = Math.round((currentNeeds / totalNW) * remain);
+            sliderWants.value = remain - sliderNeeds.value;
+            syncEverything();
+        });
+
+        function resetSimulation() {
+            sliderNeeds.value = 50;
+            sliderWants.value = 30;
+            sliderSavings.value = 20;
+            syncEverything();
+        }
+
+        // Window Onload Initialization
+        window.onload = function() {
+            initChart();
+            syncEverything();
+        };
+    </script>
+</body>
+</html>
